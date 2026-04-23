@@ -21,6 +21,33 @@ def get_command():
     last_command = None  # letto 
     return {"command": cmd}
 
+last_input = ""
+last_output = ""
+
+class InputText(BaseModel):
+    text: str
+
+@app.post("/input")
+def receive_input(data: InputText):
+    global last_input, last_output
+
+    last_input = data.text
+    print("Ricevuto:", last_input)
+
+    # Simulazione LLM
+    last_output = "Hai detto: " + last_input
+
+    return {"status": "ok"}
+
+@app.get("/command")
+def send_command():
+    global last_output
+
+    response = last_output
+    last_output = ""
+
+    return {"command": response}
+
 #uvicorn server_fastAPI:app --host 0.0.0.0 --port 8000
 #nel terminale apro python e faccio 
 # import requests
