@@ -20,7 +20,7 @@ import com.sanbot.opensdk.function.unit.interfaces.speech.SpeakListener;
 
 
 
-public class RobotClientActivity extends TopBaseActivity {
+public class RobotClientActivity_old extends TopBaseActivity {
 
     private SpeechManager speechManager;
     private Handler handler = new Handler(Looper.getMainLooper());
