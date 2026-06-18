@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <ImageView
+        android:id="@+id/ivCameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FF00FF"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:id="@+id/faceTargetIndicator"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/target_red" />
+
+    <TextView
+        android:id="@+id/tvGuideStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/faceTargetIndicator"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:text="Inquadra il tuo viso nel mirino"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:background="#A6000000"
+        android:padding="12dp" />
+</RelativeLayout>
