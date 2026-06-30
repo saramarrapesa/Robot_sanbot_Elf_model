@@ -97,34 +97,6 @@ public class MainActivity extends TopBaseActivity {
 
     }
 
-    /*
-    private void preheatOllamaModel() {
-        Log.i("MAIN", "Avvio pre-riscaldamento di Ollama in background...");
-
-        // Usa l'URL corretto di ngrok, puntando al nuovo endpoint /preheat
-        String preheatUrl = "https://provoke-commodity-coral.ngrok-free.dev/preheat";
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(preheatUrl)
-                .addHeader("ngrok-skip-browser-warning", "69420")
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("MAIN", "Errore pre-heat: " + e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                Log.i("MAIN", "Pre-heat inviato con successo! Modello in caricamento.");
-                response.close(); // Chiudi la risposta per evitare leak
-            }
-        });
-    }
-    */
-
     private void startRobotWork() {
         speechManager.startSpeak("Avvio riconoscimento volto");
 

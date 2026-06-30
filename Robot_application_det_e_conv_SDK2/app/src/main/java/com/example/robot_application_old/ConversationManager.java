@@ -150,12 +150,52 @@ public class ConversationManager {
 
                         if(!command.isEmpty() && !command.equals("null")){
                             isWaitingForServer = false;
-                            if(command.startsWith("[FEEDBACK_TRAINER]")){
+                            if(command.startsWith("[FEEDBACK_TRAINER]")) {
                                 String feedbackText = command.replace("[FEEDBACK_TRAINER]", "").trim();
                                 speakAndThenSleep(feedbackText);
+                            }else if(command.startsWith("[MICRO]")){
+                                int outputTagIndex = command.indexOf("[OUTPUT]");
+                                if (outputTagIndex != -1){
+                                    String feedbackText = command.substring(7, outputTagIndex).trim(); //salta i primi 7 caratteri di "[MICRO]"
+                                    String finalText = command.substring(outputTagIndex + 8).trim();
+                                    speakForMicroFeedback(feedbackText);
+                                    long tempoDiAttesa = (feedbackText.length() * 80L) + 1000L;
+                                    try {
+                                        Thread.sleep(tempoDiAttesa);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    /*
+                                    if(finalText.startsWith("[CLOSE]")){
+                                        String speechText = command.replace("[CLOSE]", "").trim();
+                                        speakAndKeepPolling(speechText);
+                                    }else if(finalText.startsWith("[END]")){
+                                        String speechText = command.replace("[END]", "").trim();
+                                        speakAndKeepPolling(speechText);
+                                    }else {*/
+                                    speakAndThenWakeUp(finalText);
+                                    //}
+                                }else {
+                                    String backupText = command.replace("[MICRO]","").trim();
+                                    backupText = backupText.replace("[CLOSE]","").replace("[END]","").trim();
+                                    speakAndThenSleep(backupText);
+                                    setOffLed();
+                                }
                             }else if(command.startsWith("[CLOSE]")){
-                                String speechText = command.replace("[CLOSE]", "").trim();
-                                speakAndKeepPolling(speechText);
+                                //String speechText = command.replace("[CLOSE]", "").trim();
+                                int outputTagIndex = command.indexOf("[OUTPUT]");
+                                if (outputTagIndex != -1){
+                                    String feedbackText = command.substring(14, outputTagIndex).trim(); //salta i primi 14 caratteri di "[MICRO]" e [CLOSE]
+                                    String finalText = command.substring(outputTagIndex + 8).trim();
+                                    speakForMicroFeedback(feedbackText);
+                                    long tempoDiAttesa = (feedbackText.length() * 80L) + 1000L;
+                                    try {
+                                        Thread.sleep(tempoDiAttesa);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    speakAndKeepPolling(finalText);
+                                }
                             }else if(command.startsWith("[END]")){
                                 String speechText = command.replace("[END]", "").trim();
                                 speakAndKeepPolling(speechText);
@@ -163,7 +203,6 @@ public class ConversationManager {
                                 String speechText = command.replace("[PROMPT_VISIVO]", "").trim();
                                 speechManager.doSleep();
                                 testHandMotion();
-                                //saluteRightHand();
                                 silenceCount = 0;
                                 isWaitingForInitialGreeting = true;
                                 speakAndThenWakeUp(speechText);
@@ -185,6 +224,19 @@ public class ConversationManager {
                 startPolling();
             }
         }).start();
+    }
+
+    private void setOnLed() {
+        if (hardWareManager != null) {
+            Log.i("ROBOT_HARDWARE_TEST", "Fase Feedback: accendo i LED blu...");
+            hardWareManager.setLED(new LED(LED.PART_RIGHT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
+            hardWareManager.setLED(new LED(LED.PART_LEFT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
+        }
+    }
+    private void setOffLed() {
+        if (hardWareManager != null) {
+            hardWareManager.setLED(new LED(LED.PART_ALL, LED.MODE_CLOSE, (byte) 0, (byte) 0));
+        }
     }
 
     public void testHandMotion() {
@@ -220,88 +272,6 @@ public class ConversationManager {
 
     }
 
-    public void saluteRightHand() {
-
-        try {
-
-            byte part = AbsoluteAngleWingMotion.PART_RIGHT;
-            byte speed = 8;
-
-            // POSIZIONE INIZIALE
-            int start = 30;
-
-            // BRACCIO MOLTO ALTO
-            int up = 160;
-
-            // PICCOLO ABBASSAMENTO
-            int mid = 120;
-
-            // sicurezza: reset iniziale
-            wingMotionManager.doAbsoluteAngleMotion(
-                    new AbsoluteAngleWingMotion(
-                            part,
-                            speed,
-                            start
-                    )
-            );
-
-            // alza
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                wingMotionManager.doAbsoluteAngleMotion(
-                        new AbsoluteAngleWingMotion(
-                                part,
-                                speed,
-                                up
-                        )
-                );
-
-            }, 500);
-
-            // abbassa poco
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                wingMotionManager.doAbsoluteAngleMotion(
-                        new AbsoluteAngleWingMotion(
-                                part,
-                                speed,
-                                mid
-                        )
-                );
-
-            }, 1300);
-
-            // rialza
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                wingMotionManager.doAbsoluteAngleMotion(
-                        new AbsoluteAngleWingMotion(
-                                part,
-                                speed,
-                                up
-                        )
-                );
-
-            }, 1900);
-
-            // torna giù
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                wingMotionManager.doAbsoluteAngleMotion(
-                        new AbsoluteAngleWingMotion(
-                                part,
-                                speed,
-                                start
-                        )
-                );
-
-            }, 2800);
-
-        } catch (Exception e) {
-
-            Log.e("SANBOT", e.getMessage());
-        }
-    }
 
     private void speakAndKeepPolling(String text) {
         handler.post(() -> {
@@ -341,6 +311,31 @@ public class ConversationManager {
                 Log.i("ROBOT_HARDWARE_TEST", "Fase Feedback: accendo i LED blu...");
                 hardWareManager.setLED(new LED(LED.PART_RIGHT_HEAD, LED.MODE_BLUE, (byte) 0, (byte) 0));
                 hardWareManager.setLED(new LED(LED.PART_LEFT_HEAD, LED.MODE_BLUE, (byte) 0, (byte) 0));
+            }
+            speechManager.setOnSpeechListener(new SpeakListener() {
+                @Override
+                public void onSpeakStatus(SpeakStatus speakStatus) {
+                    if (speakStatus.getProgress() == 100) {
+                        Log.i("CONV_MANAGER", "Sessione totalmente conclusa. Spengo tutto.");
+                        // 2. SPEGNIAMO TUTTI I LED QUI (Alla fine della frase)
+                        if (hardWareManager != null) {
+                            hardWareManager.setLED(new LED(LED.PART_ALL, LED.MODE_CLOSE, (byte) 0, (byte) 0));
+                        }
+                        speechManager.doSleep(); // Il robot va a dormire ORA, alla fine di tutto
+                        isWaitingForServer = false; // STOP definitivo al polling
+                    }
+                }
+            });
+            speechManager.startSpeak(text);
+        });
+    }
+    private void speakForMicroFeedback(String text) {
+        handler.post(() -> {
+            // 1. ACCENDIAMO I LED DI BLU ALL'INIZIO DEL FEEDBACK
+            if (hardWareManager != null) {
+                Log.i("ROBOT_HARDWARE_TEST", "Fase Feedback: accendo i LED blu...");
+                hardWareManager.setLED(new LED(LED.PART_RIGHT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
+                hardWareManager.setLED(new LED(LED.PART_LEFT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
             }
             speechManager.setOnSpeechListener(new SpeakListener() {
                 @Override
