@@ -40,6 +40,8 @@ class UserTrainingAnalyzer:
             "too_specific": 0
         }
 
+        self.turns_without_question = 0
+
     # ==========================================
     # FEATURE EXTRACTION
     # ==========================================
@@ -58,6 +60,14 @@ class UserTrainingAnalyzer:
         lower = user_text.lower()
         
         reciprocal_question = any(q in lower for q in QUESTION_FRAGMENTS)
+        trigger_missing_question = False
+        if reciprocal_question:
+            self.turns_without_question = 0
+        else:
+            self.turns_without_question += 1
+            if self.turns_without_question >= 3: # Modifica qui per 2 o 3 turni
+                trigger_missing_question = True
+                self.turns_without_question = 0
         
         # --- Brevity ---
         short_response = word_count < 4
@@ -129,6 +139,7 @@ class UserTrainingAnalyzer:
         return {
             "word_count": word_count,
             "reciprocal_question": reciprocal_question,
+            "trigger_missing_question": trigger_missing_question,
             "short_response": short_response,
             "overexplaining": overexplaining,
             "topic_maintenance": topic_maintenance,
@@ -150,7 +161,7 @@ class UserTrainingAnalyzer:
             ],
             "reciprocal_question": [
                 "Bravissimo, hai fatto una domanda di ritorno.",
-                "Hai fatto una domanda. È un ottim modo per continuare a parlare",
+                "Hai fatto una domanda. È un ottimo modo per continuare a parlare.",
                 "Fare una domanda è l'azione giusta, ben fatto!"
             ],
             "topic_maintenance": [
@@ -231,7 +242,7 @@ class UserTrainingAnalyzer:
         elif features.get("overexplaining"):
             improvement = random.choice(improvements["overexplaining"])
             example = random.choice(examples["overexplaining"])
-        elif not features.get("reciprocal_question"):
+        elif features.get("trigger_missing_question"):
             improvement = random.choice(improvements["missing_question"])
             example = random.choice(examples["missing_question"])
         elif features.get("negative_tone"):
