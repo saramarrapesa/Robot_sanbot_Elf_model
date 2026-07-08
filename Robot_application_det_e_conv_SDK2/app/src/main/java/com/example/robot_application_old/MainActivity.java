@@ -1,5 +1,6 @@
 package com.example.robot_application_old;
 
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -44,6 +46,11 @@ public class MainActivity extends TopBaseActivity {
     private ImageView ivCameraPreview;
     private View faceTargetIndicator;
     private TextView tvGuideStatus;
+    private EditText inputText;
+    private Button sendButton;
+
+    private RealNeonWaveView realNeonVisualizer;
+    private Visualizer mVisualizer;
 
 
 
@@ -74,6 +81,13 @@ public class MainActivity extends TopBaseActivity {
         ivCameraPreview = findViewById(R.id.ivCameraPreview);
         faceTargetIndicator = findViewById(R.id.faceTargetIndicator);
         tvGuideStatus = findViewById(R.id.tvGuideStatus);
+        inputText = (EditText) findViewById(R.id.inputText);
+        sendButton = findViewById(R.id.sendButton);
+        realNeonVisualizer = findViewById(R.id.realNeonVisualizer);
+
+        inputText.setVisibility(View.GONE);
+        sendButton.setVisibility(View.GONE);
+
 
 
     }
@@ -86,11 +100,37 @@ public class MainActivity extends TopBaseActivity {
         hardWareManager = (HardWareManager) getUnitManager(FuncConstant.HARDWARE_MANAGER);
         //preheatOllamaModel();
 
-        conversationManager = new ConversationManager(speechManager, wingMotionManager, hardWareManager);
+        conversationManager = new ConversationManager(speechManager, wingMotionManager, hardWareManager, inputText, sendButton, realNeonVisualizer);
 
         //inizializziamo il modulo di visione
         visionManager = new VisionManager((HDCameraManager) getUnitManager(FuncConstant.HDCAMERA_MANAGER), ivCameraPreview, faceTargetIndicator, tvGuideStatus);
 
+        try {
+            // Collegiamo il visualizzatore alla sessione audio 0 (tutto il sistema)
+            mVisualizer = new Visualizer(0);
+            // Impostiamo la dimensione del campionamento dati
+            mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+
+            // Diciamo al visualizzatore di passare i dati in tempo reale alla nostra View custom
+            mVisualizer.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
+                @Override
+                public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
+                    realNeonVisualizer.updateWaveform(waveform);
+                }
+
+                @Override
+                public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+                    // Non ci servono le frequenze FFT, usiamo solo la forma d'onda PCM sopra
+                }
+            }, Visualizer.getMaxCaptureRate() / 2, true, false);
+
+            // Attiviamo il visualizzatore
+            mVisualizer.setEnabled(true);
+            Log.i("AUDIO_TEST", "Visualizer di sistema attivato con successo!");
+
+        } catch (Exception e) {
+            Log.e("AUDIO_TEST", "Il sistema operativo del robot ha bloccato il Visualizer: " + e.getMessage());
+        }
 
         //Facciamo partire la sequenza
         startRobotWork();
@@ -121,6 +161,10 @@ public class MainActivity extends TopBaseActivity {
         super.onDestroy();
         if (visionManager != null) {
             visionManager.stop();
+        }
+        if (mVisualizer != null) {
+            mVisualizer.setEnabled(false);
+            mVisualizer.release();
         }
     }
 }

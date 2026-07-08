@@ -4,10 +4,14 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/drawable/bg_button_3d.xml" value="0.1" />
+        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/drawable/bg_edittext_3d.xml" value="0.1" />
         <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/drawable/target_green.xml" value="0.11481481481481481" />
         <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/drawable/target_red.xml" value="0.1" />
+        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/layout/activity_audio.xml" value="0.120703125" />
         <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/layout/activity_face.xml" value="0.1" />
-        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/layout/activity_main.xml" value="0.234375" />
+        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/layout/activity_keyboard.xml" value="0.25" />
+        <entry key="..\:/Users/saram/Documents/uni/magistrale/Robot_sanbot_Elf_model/Robot_application_det_e_conv_SDK2/app/src/main/res/layout/activity_main.xml" value="0.16" />
       </map>
     </option>
   </component>
@@ -17,5 +21,12 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.234375" />
+      </ProjectState>
+    </option>
   </component>
 </project>

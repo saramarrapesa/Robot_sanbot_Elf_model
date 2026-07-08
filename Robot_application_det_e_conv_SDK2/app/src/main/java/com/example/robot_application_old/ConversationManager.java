@@ -1,9 +1,13 @@
 package com.example.robot_application_old;
 
 import android.media.AudioRecord;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.sanbot.opensdk.function.beans.LED;
 import com.sanbot.opensdk.function.beans.handmotion.CombinationHandMotion;
@@ -46,6 +50,7 @@ public class ConversationManager {
     private WingMotionManager wingMotionManager;
     private HardWareManager hardWareManager;
 
+
     private boolean isFirstTurn = false;
 
     private final String SERVER_INPUT_URL = "https://provoke-commodity-coral.ngrok-free.dev/input";
@@ -57,16 +62,57 @@ public class ConversationManager {
 
     private int timeoutCount = 0;
     private int silenceCount = 0;
+    private boolean wantDigit = false;
     private boolean isWaitingForInitialGreeting = false;
 
+    private EditText inputText;
+    private Button sendButton;
 
-    public ConversationManager (SpeechManager speechManager, WingMotionManager wingMotionManager, HardWareManager hardWareManager){
+    private RealNeonWaveView realNeonVisualizer;
+    private boolean isTypingMode = false;
+
+
+    public ConversationManager (SpeechManager speechManager, WingMotionManager wingMotionManager, HardWareManager hardWareManager, EditText inputText, Button sendButton, RealNeonWaveView realNeonVisualizer){
         this.speechManager = speechManager;
         this.wingMotionManager = wingMotionManager;
         this.hardWareManager = hardWareManager;
+        this.inputText = inputText;
+        this.sendButton = sendButton;
+        this.realNeonVisualizer = realNeonVisualizer;
+
+        //per il bottone per quando finisce di scrivere
+        handler.post(()-> {
+            this.sendButton.setOnClickListener(v -> {
+                String testoDigitato = this.inputText.getText().toString().trim();
+                if(!testoDigitato.isEmpty()){
+                    this.inputText.setVisibility(View.GONE);
+                    this.sendButton.setVisibility(View.GONE);
+                    this.inputText.setText("");
+
+                    isTypingMode = false;
+
+                    sendTextToServer(testoDigitato);
+                    isWaitingForServer = true;
+                    startPolling();
+                }
+            });
+
+        });
 
         setupUnsafeDefaultSSL();
 
+    }
+
+    private void startRealVisualizer() {
+        handler.post(() -> {
+            realNeonVisualizer.setRobotSpeaking(true);
+        });
+    }
+
+    private void stopRealVisualizer() {
+        handler.post(() -> {
+            realNeonVisualizer.setRobotSpeaking(false); // L'onda si appiattisce all'istante
+        });
     }
 
     private void setupUnsafeDefaultSSL() {
@@ -165,14 +211,6 @@ public class ConversationManager {
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
-                                    /*
-                                    if(finalText.startsWith("[CLOSE]")){
-                                        String speechText = command.replace("[CLOSE]", "").trim();
-                                        speakAndKeepPolling(speechText);
-                                    }else if(finalText.startsWith("[END]")){
-                                        String speechText = command.replace("[END]", "").trim();
-                                        speakAndKeepPolling(speechText);
-                                    }else {*/
                                     speakAndThenWakeUp(finalText);
                                     //}
                                 }else {
@@ -226,13 +264,6 @@ public class ConversationManager {
         }).start();
     }
 
-    private void setOnLed() {
-        if (hardWareManager != null) {
-            Log.i("ROBOT_HARDWARE_TEST", "Fase Feedback: accendo i LED blu...");
-            hardWareManager.setLED(new LED(LED.PART_RIGHT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
-            hardWareManager.setLED(new LED(LED.PART_LEFT_HEAD, LED.MODE_PURPLE, (byte) 0, (byte) 0));
-        }
-    }
     private void setOffLed() {
         if (hardWareManager != null) {
             hardWareManager.setLED(new LED(LED.PART_ALL, LED.MODE_CLOSE, (byte) 0, (byte) 0));
@@ -279,12 +310,14 @@ public class ConversationManager {
                 @Override
                 public void onSpeakStatus(SpeakStatus speakStatus) {
                     if (speakStatus.getProgress() == 100) {
+                        stopRealVisualizer();
                         Log.i("CONV_MANAGER", "Frase detta. Continuo il polling...");
                         isWaitingForServer = true;
                         startPolling(); // Richiediamo subito il prossimo comando (il feedback)
                     }
                 }
             });
+            startRealVisualizer();
             speechManager.startSpeak(text);
         });
     }
@@ -294,6 +327,7 @@ public class ConversationManager {
             @Override
             public void onSpeakStatus(SpeakStatus speakStatus) {
                 if (speakStatus.getProgress() == 100){
+                    stopRealVisualizer();
                     handler.postDelayed(() -> {
                         initSpeechListener();
                         speechManager.doWakeUp();
@@ -301,6 +335,7 @@ public class ConversationManager {
                 }
             }
         });
+        startRealVisualizer();
         speechManager.startSpeak(command);
     }
 
@@ -316,6 +351,7 @@ public class ConversationManager {
                 @Override
                 public void onSpeakStatus(SpeakStatus speakStatus) {
                     if (speakStatus.getProgress() == 100) {
+                        stopRealVisualizer();
                         Log.i("CONV_MANAGER", "Sessione totalmente conclusa. Spengo tutto.");
                         // 2. SPEGNIAMO TUTTI I LED QUI (Alla fine della frase)
                         if (hardWareManager != null) {
@@ -326,6 +362,7 @@ public class ConversationManager {
                     }
                 }
             });
+            startRealVisualizer();
             speechManager.startSpeak(text);
         });
     }
@@ -341,6 +378,7 @@ public class ConversationManager {
                 @Override
                 public void onSpeakStatus(SpeakStatus speakStatus) {
                     if (speakStatus.getProgress() == 100) {
+                        stopRealVisualizer();
                         Log.i("CONV_MANAGER", "Sessione totalmente conclusa. Spengo tutto.");
                         // 2. SPEGNIAMO TUTTI I LED QUI (Alla fine della frase)
                         if (hardWareManager != null) {
@@ -351,6 +389,7 @@ public class ConversationManager {
                     }
                 }
             });
+            startRealVisualizer();
             speechManager.startSpeak(text);
         });
     }
@@ -370,8 +409,22 @@ public class ConversationManager {
                     timeoutCount = 0;
                     isFirstTurn = false;
                     isWaitingForInitialGreeting = false;
-
-                    if(isRetryMode){
+                    //Aggiunto per la sperimentazione 2.0
+                    if(wantDigit){
+                        wantDigit = false;
+                        if(text.contains("si") || text.contains("sì")){
+                            isTypingMode = true;
+                            handler.post(() -> {
+                                inputText.setVisibility(View.VISIBLE);
+                                sendButton.setVisibility(View.VISIBLE);
+                                inputText.requestFocus(); //serve per forzare l'apertura della tastiera
+                            });
+                            speechManager.doSleep(); //momentaneamente addormentiamo il riconoscimento vocale
+                        }else{
+                            //chiudiamo la conversazione
+                            closeConversation();
+                        }
+                    }else if(isRetryMode){
                         handleRetryResponse(text);
                     } else{
                         //isFirstTurn = false;
@@ -393,6 +446,8 @@ public class ConversationManager {
 
             @Override
             public void onError(int i, int i1) {
+                if (isTypingMode) return;
+
                 if(i1 == 20005 || i == 4){
                     Log.w("CONV_MANAGER", "Timeout microfono: l'utente non ha preso l'iniziativa.");
                     if(isFirstTurn){
@@ -419,19 +474,38 @@ public class ConversationManager {
 
                         timeoutCount ++;
                         Log.i("CONV_MANAGER", "Silenzio in conversazione. Conteggio: " + timeoutCount);
-                        if(timeoutCount <=2 ){
+                        if(wantDigit){
+                            Log.w("CONV_MANAGER", "Nessuna risposta alla richiesta di digitazione. Chiudo la conversazione.");
+                            wantDigit = false;
+                            closeConversation();
+                        }
+                        else if(timeoutCount <=2 ) {
                             askForHelp();
-                        }else{
-                            Log.w("CONV_MANAGER", "L'utente non risponde dopo 2 inviti. Chiudo la conversazione e chiedo il feedback");
-                            timeoutCount = 0;
-                            sendTextToServer("[CONVERSATION_TIMEOUT]");
-                            isWaitingForServer = true;
-                            startPolling();
+                        }else{ //AGGIUNTO PER LA SPERIMENTAZIONE 2.0
+                            isRetryMode = false;
+                            WantToDigit();
+
                         }
                     }
                 }
             }
         });
+    }
+
+    private void closeConversation() {
+        Log.w("CONV_MANAGER", "L'utente non risponde dopo 2 inviti. Chiudo la conversazione e chiedo il feedback");
+        timeoutCount = 0;
+        sendTextToServer("[CONVERSATION_TIMEOUT]");
+        isWaitingForServer = true;
+        startPolling();
+    }
+
+
+    //AGGIUNTO PER LA SPERIMENTAZIONE 2.0
+    private void WantToDigit(){
+        wantDigit = true;
+        handler.post(() -> speakAndThenWakeUp("Preferisci digitare quello che mi vuoi dire? Dire solo SI o NO"));
+
     }
 
     private void askForHelp() {

@@ -2,13 +2,19 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="#121212">
+
+    <com.example.robot_application_old.RealNeonWaveView
+        android:id="@+id/realNeonVisualizer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <ImageView
         android:id="@+id/ivCameraPreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FF00FF"
+        android:background="#000000"
         android:scaleType="centerCrop" />
 
     <View
@@ -30,4 +36,33 @@
         android:textSize="22sp"
         android:background="#A6000000"
         android:padding="12dp" />
+
+    <EditText
+        android:id="@+id/inputText"
+        android:layout_width="623dp"
+        android:layout_height="312dp"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="88dp"
+        android:background="@drawable/bg_edittext_3d"
+        android:elevation="8dp"
+        android:hint="Digita qui..."
+        android:padding="24dp"
+        android:textColor="#333333"
+        android:textColorHint="#999999"
+        android:textSize="25sp" />
+
+    <Button
+        android:id="@+id/sendButton"
+        android:layout_width="625dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="536dp"
+        android:background="@drawable/bg_button_3d"
+        android:elevation="12dp"
+        android:text="INVIA"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+
 </RelativeLayout>
